@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -141,6 +142,39 @@ class GameControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/v1/game/{id}/moves returns the updated board state after a successful move")
+    void makeMoveReturnsUpdatedBoardState() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        Game game = Game.builder()
+                .id(gameId)
+                .status(GameStatus.IN_PROGRESS)
+                .currentPlayer(Player.PLAYER_2)
+                .player1Symbol(Symbol.X)
+                .moveCount(1)
+                .version(1L)
+                .build();
+        List<Move> moves = List.of(
+                Move.builder().id(1L).gameId(gameId).position(0).player(Player.PLAYER_1).moveNumber(1).build()
+        );
+
+        when(moveUseCase.makeMove(eq(gameId), eq(Player.PLAYER_1), eq(0))).thenReturn(game);
+        when(moveUseCase.getMoves(gameId)).thenReturn(moves);
+
+        mockMvc.perform(post("/api/v1/game/{id}/moves", gameId)
+                        .contentType("application/json")
+                        .content("""
+                                {"player":"PLAYER_1","position":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value(gameId.toString()))
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$.currentPlayer").value("PLAYER_2"))
+                .andExpect(jsonPath("$.moveCount").value(1))
+                .andExpect(jsonPath("$.board[0][0]").value("X"))
+                .andExpect(jsonPath("$.board[0][1]").value(""));
+    }
+
+    @Test
     @DisplayName("POST /api/v1/game/{id}/moves returns 404 when the game does not exist")
     void makeMoveReturnsNotFoundWhenGameDoesNotExist() throws Exception {
         UUID gameId = UUID.randomUUID();
@@ -185,6 +219,30 @@ class GameControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/v1/game/{id}/moves returns 400 for an invalid player enum value")
+    void makeMoveReturnsBadRequestForInvalidPlayerEnum() throws Exception {
+        mockMvc.perform(post("/api/v1/game/{id}/moves", UUID.randomUUID())
+                        .contentType("application/json")
+                        .content("""
+                                {"player":"PLAYER_3","position":0}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid request body"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/game/{id}/moves returns 400 for malformed JSON")
+    void makeMoveReturnsBadRequestForMalformedJson() throws Exception {
+        mockMvc.perform(post("/api/v1/game/{id}/moves", UUID.randomUUID())
+                        .contentType("application/json")
+                        .content("""
+                                {"player":"PLAYER_1","position":0
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid request body"));
+    }
+
+    @Test
     @DisplayName("POST /api/v1/game/{id}/moves returns 400 when player is missing")
     void makeMoveReturnsBadRequestForValidationFailure() throws Exception {
         mockMvc.perform(post("/api/v1/game/{id}/moves", UUID.randomUUID())
@@ -206,5 +264,40 @@ class GameControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("position must be less than or equal to 8"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/game/{id}/moves returns 409 for optimistic locking conflicts")
+    void makeMoveReturnsConflictForOptimisticLockingFailure() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        when(moveUseCase.makeMove(eq(gameId), eq(Player.PLAYER_1), eq(0)))
+                .thenThrow(new ObjectOptimisticLockingFailureException(Game.class, gameId));
+
+        mockMvc.perform(post("/api/v1/game/{id}/moves", gameId)
+                        .contentType("application/json")
+                        .content("""
+                                {"player":"PLAYER_1","position":0}
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Game was updated concurrently. Please try again."));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/game/{id}/moves returns 500 with the generic error shape for unexpected failures")
+    void makeMoveReturnsInternalServerErrorForUnexpectedFailure() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        when(moveUseCase.makeMove(eq(gameId), eq(Player.PLAYER_1), eq(0)))
+                .thenThrow(new RuntimeException("Unexpected failure"));
+
+        mockMvc.perform(post("/api/v1/game/{id}/moves", gameId)
+                        .contentType("application/json")
+                        .content("""
+                                {"player":"PLAYER_1","position":0}
+                                """))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.error").value("Internal Server Error"))
+                .andExpect(jsonPath("$.message").value("Unexpected failure"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 }
