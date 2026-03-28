@@ -1,5 +1,6 @@
 package com.sercan.tictactoe_basic.adapter.out.persistence;
 
+import com.sercan.tictactoe_basic.application.exception.GameNotFoundException;
 import com.sercan.tictactoe_basic.application.port.out.GameRepositoryPort;
 import com.sercan.tictactoe_basic.application.port.out.MoveRepositoryPort;
 import com.sercan.tictactoe_basic.domain.model.Game;
@@ -34,7 +35,7 @@ public class GamePersistenceAdapter implements GameRepositoryPort, MoveRepositor
     @Override
     public Move save(Move move) {
         GameEntity gameEntity = gameJpaRepository.findById(move.gameId())
-                .orElseThrow(() -> new IllegalArgumentException("Game with id " + move.gameId() + " does not exist"));
+                .orElseThrow(() -> new GameNotFoundException(move.gameId()));
 
         MoveEntity entity = mapToMoveEntity(move, gameEntity);
         MoveEntity savedEntity = moveJpaRepository.save(entity);

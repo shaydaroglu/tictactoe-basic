@@ -1,5 +1,6 @@
 package com.sercan.tictactoe_basic.application.service;
 
+import com.sercan.tictactoe_basic.application.exception.GameNotFoundException;
 import com.sercan.tictactoe_basic.application.port.in.GameUseCase;
 import com.sercan.tictactoe_basic.application.port.out.GameRepositoryPort;
 import com.sercan.tictactoe_basic.domain.model.Game;
@@ -29,6 +30,6 @@ public class GameService implements GameUseCase {
     }
 
     public Game getGame(UUID gameId) {
-        return gameRepositoryPort.findById(gameId).orElseThrow(() -> new IllegalArgumentException("Game with id " + gameId + " does not exist"));
+        return gameRepositoryPort.findById(gameId).orElseThrow(() -> new GameNotFoundException(gameId));
     }
 }

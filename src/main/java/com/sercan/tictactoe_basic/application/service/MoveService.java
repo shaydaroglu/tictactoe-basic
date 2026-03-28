@@ -1,5 +1,9 @@
 package com.sercan.tictactoe_basic.application.service;
 
+import com.sercan.tictactoe_basic.application.exception.GameAlreadyFinishedException;
+import com.sercan.tictactoe_basic.application.exception.GameNotFoundException;
+import com.sercan.tictactoe_basic.application.exception.InvalidTurnException;
+import com.sercan.tictactoe_basic.application.exception.PositionAlreadyTakenException;
 import com.sercan.tictactoe_basic.application.port.in.MoveUseCase;
 import com.sercan.tictactoe_basic.application.port.out.GameRepositoryPort;
 import com.sercan.tictactoe_basic.application.port.out.MoveRepositoryPort;
@@ -39,7 +43,7 @@ public class MoveService implements MoveUseCase {
     @Transactional
     public Game makeMove(UUID gameId, Player player, int position) {
         Game game = gameRepositoryPort.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game with id " + gameId + " not found"));
+                .orElseThrow(() -> new GameNotFoundException(gameId));
 
         validateMove(game, player, position);
 
@@ -75,15 +79,15 @@ public class MoveService implements MoveUseCase {
 
     private void validateMove(Game game, Player player, int position) {
         if (game.isFinished()) {
-            throw new IllegalStateException("Game is already finished");
+            throw new GameAlreadyFinishedException();
         }
 
         if (game.currentPlayer() != player) {
-            throw new IllegalStateException("It is not " + player + "'s turn");
+            throw new InvalidTurnException(player);
         }
 
         if (moveRepositoryPort.existsByGameIdAndPosition(game.id(), position)) {
-            throw new IllegalStateException("Position " + position + " is already taken");
+            throw new PositionAlreadyTakenException(position);
         }
     }
 
