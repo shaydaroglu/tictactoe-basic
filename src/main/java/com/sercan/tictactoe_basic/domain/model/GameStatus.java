@@ -1,4 +1,4 @@
-package com.sercan.tictactoe_basic.adapter.out.persistence;
+package com.sercan.tictactoe_basic.domain.model;
 
 public enum GameStatus {
     IN_PROGRESS,

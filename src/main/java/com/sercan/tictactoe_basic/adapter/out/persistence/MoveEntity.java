@@ -1,5 +1,6 @@
 package com.sercan.tictactoe_basic.adapter.out.persistence;
 
+import com.sercan.tictactoe_basic.domain.model.Player;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

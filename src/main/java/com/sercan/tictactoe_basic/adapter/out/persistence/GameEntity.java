@@ -1,5 +1,8 @@
 package com.sercan.tictactoe_basic.adapter.out.persistence;
 
+import com.sercan.tictactoe_basic.domain.model.GameStatus;
+import com.sercan.tictactoe_basic.domain.model.Player;
+import com.sercan.tictactoe_basic.domain.model.Symbol;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
