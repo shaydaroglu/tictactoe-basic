@@ -40,7 +40,7 @@ public class GameEntity {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private Player winningPlayer;
+    private Player winner;
 
     @Column(nullable = false)
     private int moveCount;
