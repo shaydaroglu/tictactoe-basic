@@ -9,7 +9,7 @@ import static com.sercan.tictactoe_basic.domain.model.Player.PLAYER_2;
 
 @Builder
 public record Game(UUID id, GameStatus status, Player currentPlayer, Symbol player1Symbol, Player winner,
-                   int moveCount) {
+                   int moveCount, Long version) {
     public boolean isFinished() {
         return status != GameStatus.IN_PROGRESS;
     }
@@ -21,7 +21,7 @@ public record Game(UUID id, GameStatus status, Player currentPlayer, Symbol play
         return player1Symbol == Symbol.X ? Symbol.O : Symbol.X;
     }
 
-    public Player nextPlayer(Player player) {
+    public Player nextPlayer() {
         return currentPlayer == PLAYER_1 ? PLAYER_2 : PLAYER_1;
     }
 }

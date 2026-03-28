@@ -61,6 +61,7 @@ public class GamePersistenceAdapter implements GameRepositoryPort, MoveRepositor
                 .player1Symbol(entity.getPlayer1Symbol())
                 .winner(entity.getWinner())
                 .moveCount(entity.getMoveCount())
+                .version(entity.getVersion())
                 .build();
     }
 
@@ -72,6 +73,7 @@ public class GamePersistenceAdapter implements GameRepositoryPort, MoveRepositor
                 .player1Symbol(game.player1Symbol())
                 .winner(game.winner())
                 .moveCount(game.moveCount())
+                .version(game.version())
                 .build();
     }
 

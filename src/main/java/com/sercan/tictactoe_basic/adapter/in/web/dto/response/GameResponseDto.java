@@ -4,8 +4,9 @@ import com.sercan.tictactoe_basic.domain.model.GameStatus;
 import com.sercan.tictactoe_basic.domain.model.Player;
 import com.sercan.tictactoe_basic.domain.model.Symbol;
 
+import java.util.List;
 import java.util.UUID;
 
-public record GameResponseDto(UUID gameId, GameStatus status, Player currentPlayer, Symbol playerOneSymbol,
-                              int moveCount) {
+public record GameResponseDto(UUID gameId, GameStatus status, Player currentPlayer, Symbol playerOneSymbol, Player winner,
+                              int moveCount, List<List<String>> board) {
 }
