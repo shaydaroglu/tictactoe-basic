@@ -8,6 +8,8 @@ import com.sercan.tictactoe_basic.domain.model.Symbol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 import static com.sercan.tictactoe_basic.domain.model.GameStatus.IN_PROGRESS;
 
 @Service
@@ -24,5 +26,9 @@ public class GameService implements GameUseCase {
                 .build();
 
         return gameRepositoryPort.save(newGame);
+    }
+
+    public Game getGame(UUID gameId) {
+        return gameRepositoryPort.findById(gameId).orElseThrow(() -> new IllegalArgumentException("Game with id " + gameId + " does not exist"));
     }
 }

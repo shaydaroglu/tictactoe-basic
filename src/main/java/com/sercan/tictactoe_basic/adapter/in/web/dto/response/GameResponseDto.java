@@ -6,6 +6,6 @@ import com.sercan.tictactoe_basic.domain.model.Symbol;
 
 import java.util.UUID;
 
-public record CreateGameResponse(UUID gameId, GameStatus status, Player currentPlayer, Symbol playerOneSymbol,
-                                 int moveCount) {
+public record GameResponseDto(UUID gameId, GameStatus status, Player currentPlayer, Symbol playerOneSymbol,
+                              int moveCount) {
 }
